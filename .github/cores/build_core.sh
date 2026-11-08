@@ -76,7 +76,9 @@ mednafen_pce_fast)
 fbneo)
     repo=libretro/FBNeo
     subdir=src/burner/libretro
-    extra=(USE_EXPERIMENTAL_FLAGS=0) # LTO makes the toolchain's gcc 8.3 crash (ICE in ay8910.c)
+    # No LTO: it makes the toolchain gcc 8.3 crash (ICE in ay8910.c).
+    # The classic_armv7_a7 target does not link pthread (needed by sys16_gfx).
+    extra=(USE_EXPERIMENTAL_FLAGS=0 LIBS=-lpthread)
     ;;
 mame2003_plus)
     repo=libretro/mame2003-plus-libretro
