@@ -15,10 +15,18 @@ cd $sysdir
 
 pkill -9 pressMenu2Kill
 
+# MENU exits the scraper, but keymon also sees that press and requests the
+# GameSwitcher. Drop that request so we return to the game list.
+# (ported from alvin-000/Onion)
+rm -f $sysdir/.runGameSwitcher
 
 # background scraping :
 if [ -f /tmp/scraper_script.sh ]; then
     chmod a+x /tmp/scraper_script.sh
     sh /tmp/scraper_script.sh &
 fi
+
+# Return to the game list instead of launching the selected rom: GLO
+# propagates this exit status and runtime.sh starts the game on 0.
+exit 1
 
