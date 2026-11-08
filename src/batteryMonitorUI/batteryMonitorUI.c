@@ -90,11 +90,20 @@ void free_resources(void)
     SDL_Quit();
 }
 
-void secondsToHoursMinutes(int seconds, char *output)
+// `output` is a 10-byte buffer at every call site, and this could write 12:
+// a negative `seconds` makes `minutes` negative, so "%02d" becomes three
+// characters, and a large `hours` does the rest. Take the size and bound it.
+// (ported from alvin-000/Onion)
+void secondsToHoursMinutes(int seconds, char *output, size_t size)
 {
-    int hours = seconds / 3600;
-    int minutes = (seconds % 3600) / 60;
-    sprintf(output, "%dh%02d", hours, minutes);
+    int hours, minutes;
+
+    if (seconds < 0)
+        seconds = 0;
+
+    hours = seconds / 3600;
+    minutes = (seconds % 3600) / 60;
+    snprintf(output, size, "%dh%02d", hours, minutes);
 }
 
 void drawLine(int x1, int y1, int x2, int y2, Uint32 color)
@@ -237,7 +246,7 @@ void compute_graph(void)
     int previous_index = graph_max_size - 1;
     bool is_estimation_computed = false;
 
-    secondsToHoursMinutes(get_best_session_time(), session_best);
+    secondsToHoursMinutes(get_best_session_time(), session_best, sizeof(session_best));
 
     if (open_battery_log_db() == 1) {
         if (bat_log_db != NULL) {
@@ -279,7 +288,7 @@ void compute_graph(void)
                     }
 
                     if ((is_charging) && (!is_estimation_computed)) {
-                        secondsToHoursMinutes(total_duration, session_duration);
+                        secondsToHoursMinutes(total_duration, session_duration, sizeof(session_duration));
                         if (previous_index < (graph_max_size - duration_to_pixel(GRAPH_MIN_SESSION_FOR_ESTIMATION))) {
                             float slope = (float)(graphic[graph_max_size - 1].pixel_height - graphic[previous_index].pixel_height) / (float)(graph_max_size - 1 - previous_index);
 
@@ -290,7 +299,7 @@ void compute_graph(void)
                                 int estimated_playtime = (int)(estimation_line_size)*GRAPH_DISPLAY_DURATION / GRAPH_DISPLAY_SIZE_X;
 
                                 if (estimated_playtime < GRAPH_MAX_PLAUSIBLE_ESTIMATION) {
-                                    secondsToHoursMinutes(estimated_playtime, session_left);
+                                    secondsToHoursMinutes(estimated_playtime, session_left, sizeof(session_left));
                                     // shift of the existing logs to make room for the estimation line
                                     int room_to_make = estimation_line_size + GRAPH_ESTIMATED_LINE_GAP;
                                     if (current_index - room_to_make >= 0) {
