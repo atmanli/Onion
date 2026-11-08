@@ -10,6 +10,9 @@ on:
   #     - '**/README.md'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   pre-release:
     name: Pre-release
@@ -25,11 +28,11 @@ jobs:
         submodules: recursive
     - name: Git config
       run: |
-        git config --global --add safe.directory /__w/Onion/Onion
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Get version
       run: |
         echo "BUILD_VERSION=$(make version)" >> $GITHUB_ENV
-        echo "SHA_SHORT=$(git log -n 1 --pretty=format:"%h" origin/main)" >> $GITHUB_ENV
+        echo "SHA_SHORT=$(git log -n 1 --pretty=format:"%h" HEAD)" >> $GITHUB_ENV
     - name: Print version
       run: |
         echo "Onion-v${{ env.BUILD_VERSION }}-${{ env.SHA_SHORT }}"

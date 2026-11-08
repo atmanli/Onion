@@ -1,0 +1,88 @@
+name: Build cores
+
+on:
+  push:
+    paths:
+      - '.github/cores/**'
+      - '.github/workflows/build-cores.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  list:
+    name: Read core list
+    runs-on: ubuntu-latest
+    outputs:
+      cores: ${{ steps.list.outputs.cores }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        run: |
+          cores=$(grep -v '^\s*#' .github/cores/wave.txt | sed '/^\s*$/d' | jq -R . | jq -cs .)
+          echo "cores=$cores" >> "$GITHUB_OUTPUT"
+          echo "$cores"
+
+  build:
+    name: ${{ matrix.core }}
+    needs: list
+    runs-on: ubuntu-latest
+    container:
+      image: aemiii91/miyoomini-toolchain:latest
+      options: --user root
+    strategy:
+      fail-fast: false
+      matrix:
+        core: ${{ fromJson(needs.list.outputs.cores) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.core }}
+        shell: bash
+        run: bash .github/cores/build_core.sh "${{ matrix.core }}" out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-${{ matrix.core }}
+          path: out/
+          if-no-files-found: error
+
+  commit:
+    name: Commit built cores
+    needs: build
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: core-*
+          merge-multiple: true
+          path: built
+      - name: Copy cores and update manifest
+        run: |
+          set -e
+          dest=static/build/RetroArch/.retroarch/cores
+          manifest=.github/core-manifest.tsv
+          [ -f "$manifest" ] || printf 'core\trepo\tcommit\tdate\n' > "$manifest"
+          shopt -s nullglob
+          for so in built/*_libretro.so; do
+            name=$(basename "$so" _libretro.so)
+            cp "$so" "$dest/"
+            grep -v "^${name}	" "$manifest" > "$manifest.tmp" || true
+            mv "$manifest.tmp" "$manifest"
+            cat "built/${name}.manifest" >> "$manifest"
+            echo "Updated $name"
+          done
+          { head -1 "$manifest"; tail -n +2 "$manifest" | sort; } > "$manifest.tmp" && mv "$manifest.tmp" "$manifest"
+          cat "$manifest"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/build/RetroArch/.retroarch/cores .github/core-manifest.tsv
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Update cores from upstream (build-cores workflow)" -m "$(tail -n +2 .github/core-manifest.tsv)"
+          git push
