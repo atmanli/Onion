@@ -1,13 +1,18 @@
 name: Pre-release
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths-ignore:
-  #     - '.github/**'
-  #     - 'test/**'
-  #     - '**/README.md'
+  # Fork: every push to dev produces a fresh "latest" pre-release for testing.
+  # (Commits made by the build-cores workflow do not trigger this.)
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - '.github/cores/**'
+      - '.github/core-manifest.tsv'
+      - '.github/workflows/build-cores.yml'
+      - 'test/**'
+      - '**/README.md'
+      - 'FORK.md'
   workflow_dispatch:
 
 permissions:
