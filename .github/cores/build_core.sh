@@ -89,6 +89,10 @@ mednafen_lynx)
     ;;
 mednafen_ngp)
     repo=libretro/beetle-ngp-libretro
+    # The classic_armv7_a7 target forces LTO, which crashes gcc 8.3 (ICE in
+    # arm_expand_divmod_libfunc). Generic target with our CPU flags instead.
+    platform=unix
+    export CFLAGS="$ARM_FLAGS -O3" CXXFLAGS="$ARM_FLAGS -O3"
     ;;
 mednafen_wswan)
     repo=libretro/beetle-wswan-libretro
@@ -146,7 +150,7 @@ if [ "$buildsys" = cmake ]; then
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBMGBA_ONLY=ON -DBUILD_LIBRETRO=ON \
         -DBUILD_GL=OFF -DBUILD_GLES2=OFF -DBUILD_GLES3=OFF -DUSE_EPOXY=OFF
-    cmake --build build --target "${name}_libretro" -j"$(nproc)"
+    cmake --build build --target "${name}_libretro" -- -j"$(nproc)" # image cmake predates --build -j
     built="$(find build -name "$built" -type f | head -1)"
 elif [ $cc_cmdline -eq 1 ]; then
     # Compilers go on the command line: some Makefiles hardcode CC (snes9x2005
