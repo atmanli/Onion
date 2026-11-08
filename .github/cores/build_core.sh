@@ -26,6 +26,7 @@ makefile="Makefile"
 extra=()
 built=""      # file name the core's Makefile produces (default: <name>_libretro.so)
 recursive=0
+cc_cmdline=1  # pass CC/CXX/AR on the make command line (see below)
 
 case "$name" in
 gpsp)
@@ -56,6 +57,7 @@ picodrive)
     repo=libretro/picodrive
     makefile=Makefile.libretro
     recursive=1
+    cc_cmdline=0 # builds and runs a host tool (cyclone_gen), so CC must stay overridable
     ;;
 genesis_plus_gx)
     repo=libretro/Genesis-Plus-GX
@@ -74,6 +76,7 @@ mednafen_pce_fast)
 fbneo)
     repo=libretro/FBNeo
     subdir=src/burner/libretro
+    extra=(USE_EXPERIMENTAL_FLAGS=0) # LTO makes the toolchain's gcc 8.3 crash (ICE in ay8910.c)
     ;;
 mame2003_plus)
     repo=libretro/mame2003-plus-libretro
@@ -100,7 +103,11 @@ cd "$src/$subdir"
 # Compilers go on the command line: some Makefiles hardcode CC (snes9x2005
 # sets plain gcc, gpSP's miyoomini target a path that does not exist in the
 # image), and command-line variables override those assignments.
-make -f "$makefile" platform="$platform" CC="$CC" CXX="$CXX" AR="$AR" "${extra[@]}" -j"$(nproc)"
+if [ $cc_cmdline -eq 1 ]; then
+    make -f "$makefile" platform="$platform" CC="$CC" CXX="$CXX" AR="$AR" "${extra[@]}" -j"$(nproc)"
+else
+    make -f "$makefile" platform="$platform" "${extra[@]}" -j"$(nproc)"
+fi
 
 # Never ship a host binary by accident
 if ! "${CROSS}readelf" -h "$built" | grep -q 'Machine:.*ARM'; then

@@ -1,15 +1,7 @@
 # Cores to rebuild from the latest upstream source.
 # One Onion core name per line (file name without _libretro.so).
-# Editing this file on a branch triggers the "Build cores" workflow.
-gpsp
-gambatte
-fceumm
-nestopia
-snes9x2005_plus
-mednafen_supafaust
+# Already built: gpsp gambatte fceumm nestopia snes9x2005_plus
+# mednafen_supafaust genesis_plus_gx pcsx_rearmed mednafen_pce_fast mame2003_plus
+# (see .github/core-manifest.tsv). Editing this file on a branch triggers the "Build cores" workflow.
 picodrive
-genesis_plus_gx
-pcsx_rearmed
-mednafen_pce_fast
 fbneo
-mame2003_plus
