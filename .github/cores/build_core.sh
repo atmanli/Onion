@@ -27,6 +27,7 @@ extra=()
 built=""      # file name the core's Makefile produces (default: <name>_libretro.so)
 recursive=0
 cc_cmdline=1  # pass CC/CXX/AR on the make command line (see below)
+buildsys=make
 
 case "$name" in
 gpsp)
@@ -83,6 +84,33 @@ fbneo)
 mame2003_plus)
     repo=libretro/mame2003-plus-libretro
     ;;
+mednafen_lynx)
+    repo=libretro/beetle-lynx-libretro
+    ;;
+mednafen_ngp)
+    repo=libretro/beetle-ngp-libretro
+    ;;
+mednafen_wswan)
+    repo=libretro/beetle-wswan-libretro
+    ;;
+handy)
+    repo=libretro/libretro-handy
+    ;;
+pokemini)
+    repo=libretro/PokeMini
+    makefile=Makefile.libretro
+    ;;
+prosystem)
+    repo=libretro/prosystem-libretro
+    ;;
+stella2014)
+    repo=libretro/stella2014-libretro
+    ;;
+mgba)
+    # libretro/mgba now tracks upstream mGBA, which builds the core with CMake
+    repo=libretro/mgba
+    buildsys=cmake
+    ;;
 *)
     echo "Unknown core: $name" >&2
     exit 1
@@ -102,10 +130,28 @@ commit=$(git -C "$src" log -1 --format='%h')
 date=$(git -C "$src" log -1 --date=short --format='%cd') # git 2.20 in the image: no %cs
 
 cd "$src/$subdir"
-# Compilers go on the command line: some Makefiles hardcode CC (snes9x2005
-# sets plain gcc, gpSP's miyoomini target a path that does not exist in the
-# image), and command-line variables override those assignments.
-if [ $cc_cmdline -eq 1 ]; then
+if [ "$buildsys" = cmake ]; then
+    if ! command -v cmake >/dev/null; then
+        # The toolchain image has no cmake: fetch a static x86_64 build
+        v=3.27.9
+        url="https://github.com/Kitware/CMake/releases/download/v$v/cmake-$v-linux-x86_64.tar.gz"
+        mkdir -p /tmp/cmake
+        if command -v curl >/dev/null; then curl -fsSL "$url"; else wget -qO- "$url"; fi | tar -xz -C /tmp/cmake --strip-components=1
+        export PATH="/tmp/cmake/bin:$PATH"
+    fi
+    cmake -S . -B build \
+        -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=arm \
+        -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" \
+        -DCMAKE_C_FLAGS="$ARM_FLAGS" -DCMAKE_CXX_FLAGS="$ARM_FLAGS" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DLIBMGBA_ONLY=ON -DBUILD_LIBRETRO=ON \
+        -DBUILD_GL=OFF -DBUILD_GLES2=OFF -DBUILD_GLES3=OFF -DUSE_EPOXY=OFF
+    cmake --build build --target "${name}_libretro" -j"$(nproc)"
+    built="$(find build -name "$built" -type f | head -1)"
+elif [ $cc_cmdline -eq 1 ]; then
+    # Compilers go on the command line: some Makefiles hardcode CC (snes9x2005
+    # sets plain gcc, gpSP's miyoomini target a path that does not exist in the
+    # image), and command-line variables override those assignments.
     make -f "$makefile" platform="$platform" CC="$CC" CXX="$CXX" AR="$AR" "${extra[@]}" -j"$(nproc)"
 else
     make -f "$makefile" platform="$platform" "${extra[@]}" -j"$(nproc)"
