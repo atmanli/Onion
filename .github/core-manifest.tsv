@@ -7,9 +7,11 @@ gpsp	libretro/gpsp	5819380	2026-09-19
 handy	libretro/libretro-handy	bc55d46	2026-04-20
 mame2003_plus	libretro/mame2003-plus-libretro	dff0ba6	2026-11-07
 mednafen_lynx	libretro/beetle-lynx-libretro	fcdefcf	2026-04-20
+mednafen_ngp	libretro/beetle-ngp-libretro	a50d5ac	2026-06-14
 mednafen_pce_fast	libretro/beetle-pce-fast-libretro	2de1ce1	2026-10-30
 mednafen_supafaust	libretro/supafaust	642d1d1	2026-08-23
 mednafen_wswan	libretro/beetle-wswan-libretro	4b01295	2026-07-31
+mgba	libretro/mgba	7a12d6d	2026-09-16
 nestopia	libretro/nestopia	f1e02d1	2026-10-31
 pcsx_rearmed	libretro/pcsx_rearmed	7b0e8f8	2026-10-29
 picodrive	libretro/picodrive	1890c29	2026-09-26
