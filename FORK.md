@@ -25,7 +25,7 @@ SearchFilter-Fork, Lade-Bildschirm-Fix (betrifft nur alvins Display-Umbau).
    Gerät das neue RetroArch-Paket nicht.
 4. Workflow „Pre-release“ manuell starten → ZIP unter Releases (`latest`).
 
-## Neu gebaute Cores (Welle 1, RA_SUBVERSION 1.22.2-2)
+## Neu gebaute Cores (RA_SUBVERSION 1.22.2-3, Welle 1 + 2)
 
 | Core | Quelle | Commit | Stand |
 |---|---|---|---|
@@ -34,12 +34,23 @@ SearchFilter-Fork, Lade-Bildschirm-Fix (betrifft nur alvins Display-Umbau).
 | gambatte | libretro/gambatte-libretro | 77f2567 | 2026-10-30 |
 | genesis_plus_gx | libretro/Genesis-Plus-GX | f27655b | 2026-10-30 |
 | gpsp | libretro/gpsp | 5819380 | 2026-09-19 |
+| handy | libretro/libretro-handy | bc55d46 | 2026-04-20 |
 | mame2003_plus | libretro/mame2003-plus-libretro | dff0ba6 | 2026-11-07 |
+| mednafen_lynx | libretro/beetle-lynx-libretro | fcdefcf | 2026-04-20 |
+| mednafen_ngp | libretro/beetle-ngp-libretro | a50d5ac | 2026-06-14 |
 | mednafen_pce_fast | libretro/beetle-pce-fast-libretro | 2de1ce1 | 2026-10-30 |
 | mednafen_supafaust | libretro/supafaust | 642d1d1 | 2026-08-23 |
+| mednafen_wswan | libretro/beetle-wswan-libretro | 4b01295 | 2026-07-31 |
+| mgba | libretro/mgba | 7a12d6d | 2026-09-16 |
 | nestopia | libretro/nestopia | f1e02d1 | 2026-10-31 |
 | pcsx_rearmed | libretro/pcsx_rearmed | 7b0e8f8 | 2026-10-29 |
 | picodrive | libretro/picodrive | 1890c29 | 2026-09-26 |
+| pokemini | libretro/PokeMini | 132111b | 2026-07-31 |
+| prosystem | libretro/prosystem-libretro | 8a88014 | 2026-08-22 |
 | snes9x2005_plus | libretro/snes9x2005 | a79dfe9 | 2026-09-26 |
+| stella2014 | libretro/stella2014-libretro | 7d1361e | 2026-09-04 |
 
-FBNeo ohne LTO gebaut (gcc 8.3 der Toolchain stürzt sonst ab). Genesis Plus GX hat kein Cortex-A7-Ziel upstream und wird generisch mit `-mtune=cortex-a7` gebaut.
+Besonderheiten:
+- FBNeo und Beetle NGP ohne LTO gebaut (gcc 8.3 der Toolchain stürzt sonst ab).
+- Genesis Plus GX und Beetle NGP generisch mit `-mtune=cortex-a7` gebaut (kein passendes Ziel upstream bzw. LTO erzwungen).
+- mGBA wird per CMake gebaut (libretro/mgba folgt inzwischen dem offiziellen mGBA).
