@@ -54,7 +54,10 @@ include ./src/common/commands.mk
 
 ###########################################################
 
-.PHONY: all version core apps external release clean deepclean git-clean with-toolchain patch lib test
+# `build` and `dist` must be phony: directories with those names exist, so
+# otherwise make may consider them up to date and skip packaging.
+# (ported from alvin-000/Onion)
+.PHONY: all version core apps external build dist release clean deepclean git-clean with-toolchain patch lib test
 
 all: dist
 
@@ -201,12 +204,14 @@ dist: build
 # Package configs
 	@cp -R $(TEMP_DIR)/configs/Saves/CurrentProfile/ $(TEMP_DIR)/configs/Saves/GuestProfile
 	@echo -n "Packaging configs..."
+	@rm -f $(BUILD_DIR)/.tmp_update/config/configs.pak
 	@cd $(TEMP_DIR)/configs && 7z a -mtm=off $(BUILD_DIR)/.tmp_update/config/configs.pak . -bsp1 -bso0
 	@echo " DONE"
 	@rm -rf $(TEMP_DIR)/configs
 	@rmdir $(TEMP_DIR)
 # Package RetroArch separately
 	@echo -n "Packaging RetroArch..."
+	@rm -f $(BUILD_DIR)/retroarch.pak $(DIST_DIR)/RetroArch/retroarch.pak
 	@cd $(BUILD_DIR) && 7z a -mtm=off retroarch.pak ./RetroArch -bsp1 -bso0
 	@echo " DONE"
 	@mkdir -p $(DIST_DIR)/RetroArch
@@ -214,6 +219,7 @@ dist: build
 	@echo $(RA_SUBVERSION) > $(DIST_DIR)/RetroArch/ra_package_version.txt
 # Package Onion core
 	@echo -n "Packaging Onion..."
+	@rm -f $(DIST_DIR)/miyoo/app/.tmp_update/onion.pak
 	@cd $(BUILD_DIR) && 7z a -mtm=off $(DIST_DIR)/miyoo/app/.tmp_update/onion.pak . -x!RetroArch -bsp1 -bso0
 	@echo " DONE"
 	@$(ECHO) $(PRINT_DONE)
