@@ -94,10 +94,20 @@ else
 fi
 
 commit=$(git -C "$src" log -1 --format='%h')
-date=$(git -C "$src" log -1 --format='%cs')
+date=$(git -C "$src" log -1 --date=short --format='%cd') # git 2.20 in the image: no %cs
 
 cd "$src/$subdir"
-make -f "$makefile" platform="$platform" "${extra[@]}" -j"$(nproc)"
+# Compilers go on the command line: some Makefiles hardcode CC (snes9x2005
+# sets plain gcc, gpSP's miyoomini target a path that does not exist in the
+# image), and command-line variables override those assignments.
+make -f "$makefile" platform="$platform" CC="$CC" CXX="$CXX" AR="$AR" "${extra[@]}" -j"$(nproc)"
+
+# Never ship a host binary by accident
+if ! "${CROSS}readelf" -h "$built" | grep -q 'Machine:.*ARM'; then
+    echo "ERROR: $built is not an ARM binary" >&2
+    file "$built" >&2 || true
+    exit 1
+fi
 
 "$STRIP" --strip-unneeded "$built"
 cp "$built" "$outdir/${name}_libretro.so"
